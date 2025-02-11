@@ -2,12 +2,10 @@
 {
     public partial class Form1 : Form
     {
-        private enum LastAccessed
-        {
-            LeftListBox,
-            RightListBox
-        }
-        private LastAccessed lastAccessed;
+
+        ListBox CurrentListBox ;
+        TextBox CurrentTextBox ;
+
         public Form1()
         {
             InitializeComponent();
@@ -29,37 +27,38 @@
 
             }
         }
-        private void FillListBox(ListBox list, TextBox currentTextBox)
+        private void FillListBox(ListBox list)
         {
             if (list.SelectedItem is DriveInfo driver)
             {
                 if (driver.IsReady)
                 {
-                    currentTextBox.Text = driver.Name;
-                    LoadDirectory(driver.RootDirectory.FullName, list);
+                    CurrentTextBox.Text = driver.Name;
+                    LoadFilesAndDirectories(driver.RootDirectory.FullName, list);
                 }
             }
             else if (list.SelectedItem is DirectoryInfo directory)
             {
-                currentTextBox.Text = directory.FullName;
-                LoadDirectory(directory.FullName, list);
+                CurrentTextBox.Text = directory.FullName;
+                LoadFilesAndDirectories(directory.FullName, list);
             }
         }
 
         private void Navigate()
         {
-            if (lastAccessed == LastAccessed.LeftListBox)
+            if (CurrentListBox == listBox1)
             {
-
-                FillListBox(listBox1, Path1);
+                CurrentTextBox = Path1;
+                FillListBox(listBox1);
 
             }
             else
             {
-                FillListBox(listBox2, Path2);
+                CurrentTextBox = Path2;
+                FillListBox(listBox2);
             }
         }
-        private void LoadDirectory(string path, ListBox listBoxToAdd)
+        private void LoadFilesAndDirectories(string path, ListBox listBoxToAdd)
         {
             try
             {
@@ -89,35 +88,15 @@
 
         private void back_Click(object sender, EventArgs e)
         {
-            string CurrentPath = string.Empty;
-            ListBox currentListBox = null;
-            TextBox textBox = null;
-            if (lastAccessed == LastAccessed.LeftListBox)
-            {
 
-                CurrentPath = Path1.Text;
-                currentListBox = listBox1;
-                textBox = Path1;
-
-
-            }
-            else
-            {
-                CurrentPath = Path2.Text;
-                currentListBox = listBox2;
-                textBox = Path2;
-            }
-
-       
-
-            if (CurrentPath.Equals(string.Empty))
+            if (CurrentTextBox.Text.Equals(string.Empty))
             {
                 back.Enabled = false;
                 return;
             }
             back.Enabled = true;
 
-            DirectoryInfo CurrentDirectory = new DirectoryInfo(CurrentPath);
+            DirectoryInfo CurrentDirectory = new DirectoryInfo(CurrentTextBox.Text);
 
 
 
@@ -125,14 +104,14 @@
 
             if (ParentDirectory == null)
             {
-                LoadCurrentDrivers(currentListBox);
-                textBox.Text = string.Empty;
+                LoadCurrentDrivers(CurrentListBox);
+                CurrentTextBox.Text = string.Empty;
                 return;
             }
 
-            LoadDirectory(ParentDirectory.FullName, currentListBox);
+            LoadFilesAndDirectories(ParentDirectory.FullName, CurrentListBox);
 
-            if (lastAccessed == LastAccessed.LeftListBox)
+            if (CurrentListBox == listBox1)
             {
 
                 Path1.Text = ParentDirectory.FullName;
@@ -159,14 +138,14 @@
 
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            lastAccessed = LastAccessed.LeftListBox;
+            CurrentListBox = listBox1;
 
         }
 
         private void listBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
-            lastAccessed = LastAccessed.RightListBox;
 
+            CurrentListBox = listBox2;
         }
     }
 }
