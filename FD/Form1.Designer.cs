@@ -65,6 +65,7 @@
             moveToRight.TabIndex = 2;
             moveToRight.Text = ">";
             moveToRight.UseVisualStyleBackColor = true;
+            moveToRight.Click += moveToRight_Click;
             // 
             // moveToLeft
             // 
@@ -74,6 +75,7 @@
             moveToLeft.TabIndex = 3;
             moveToLeft.Text = "<";
             moveToLeft.UseVisualStyleBackColor = true;
+            moveToLeft.Click += moveToLeft_Click;
             // 
             // listBox2
             // 
@@ -126,7 +128,7 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(581, 504);
+            ClientSize = new Size(562, 504);
             Controls.Add(button5);
             Controls.Add(back);
             Controls.Add(copyTo);
