@@ -17,38 +17,44 @@
             back.Enabled = false;
 
             DriveInfo[] drivers = DriveInfo.GetDrives();
-
             listToShow.Items.Clear();
 
             foreach (DriveInfo driver in drivers)
             {
-                    listToShow.Items.Add(driver);
-
-
+                listToShow.Items.Add(new ListItem
+                {
+                    DisplayText = $"🖴 {driver.Name}", 
+                    Data = driver
+                });
             }
         }
+
         private void FillListBox(ListBox list)
         {
-            if (list.SelectedItem is DriveInfo driver)
+            if (list.SelectedItem is ListItem selectedItem)
             {
-                if (driver.IsReady)
+                if (selectedItem.Data is DriveInfo driver)
                 {
-                    CurrentTextBox.Text = driver.Name;
-                    LoadFilesAndDirectories(driver.RootDirectory.FullName, list);
+                    if (driver.IsReady)
+                    {
+                        CurrentTextBox.Text = driver.Name;
+                        LoadFilesAndDirectories(driver.RootDirectory.FullName, list);
+                    }
+                }
+                else if (selectedItem.Data is DirectoryInfo directory)
+                {
+                    CurrentTextBox.Text = directory.FullName;
+                    LoadFilesAndDirectories(directory.FullName, list);
                 }
             }
-            else if (list.SelectedItem is DirectoryInfo directory)
-            {
-                CurrentTextBox.Text = directory.FullName;
-                LoadFilesAndDirectories(directory.FullName, list);
-            }
         }
+
 
         private void Navigate()
         {
             if (CurrentListBox == listBox1)
             {
-                CurrentTextBox = Path1;
+                
                 FillListBox(listBox1);
 
             }
@@ -67,12 +73,20 @@
 
                 foreach (DirectoryInfo dir in directory.GetDirectories())
                 {
-                    listBoxToAdd.Items.Add(dir);
+                         listBoxToAdd.Items.Add(new ListItem
+                         {
+                             DisplayText = $"📁 {dir.Name}",
+                             Data = dir
+                         });
                 }
 
                 foreach (FileInfo file in directory.GetFiles())
                 {
-                    listBoxToAdd.Items.Add(file);
+                    listBoxToAdd.Items.Add(new ListItem
+                    {
+                        DisplayText = $"📄 {file.Name}",
+                        Data = file
+                    });
                 }
 
                 back.Enabled = true;
@@ -128,7 +142,6 @@
         private void listBox1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             Navigate();
-
         }
 
         private void listBox2_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -139,6 +152,7 @@
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             CurrentListBox = listBox1;
+            CurrentTextBox = Path1;
 
         }
 
@@ -146,6 +160,7 @@
         {
 
             CurrentListBox = listBox2;
+            CurrentTextBox = Path2;
         }
     }
 }
