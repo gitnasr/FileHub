@@ -5,7 +5,6 @@
 
         ListBox CurrentListBox;
         TextBox CurrentTextBox;
-
         public Form1()
         {
             InitializeComponent();
@@ -192,6 +191,7 @@
                         if (src.Data is DirectoryInfo)
                         {
                             Directory.Move($@"{srcPath}", @$"{dest}\{fileName}");
+
                         }
                         else
                         {
@@ -216,5 +216,70 @@
                 Move(selectedItem, Path1.Text);
             }
         }
+
+        private void CopyDirectory(string sourceDir, string destDir)
+        {
+            DirectoryInfo sourceDirectory = new DirectoryInfo(sourceDir);
+            DirectoryInfo[] subDirectories = sourceDirectory.GetDirectories();
+            FileInfo[] files = sourceDirectory.GetFiles();
+
+            if (!Directory.Exists(destDir))
+            {
+                Directory.CreateDirectory(destDir);
+            }
+
+            foreach (FileInfo file in files)
+            {
+                string destFilePath = Path.Combine(destDir, file.Name);
+                file.CopyTo(destFilePath, true);
+            }
+
+            foreach (DirectoryInfo subDirectory in subDirectories)
+            {
+                string newDestDir = Path.Combine(destDir, subDirectory.Name);
+                CopyDirectory(subDirectory.FullName, newDestDir);
+            }
+        }
+
+        private void copyTo_Click(object sender, EventArgs e)
+        {
+
+            string dest = Path2.Text;
+            if (listBox1.SelectedItem is ListItem selectedItem)
+            {
+                Copy(selectedItem, dest);
+            }
+
+        }
+
+        private void Copy(ListItem src, string dest)
+        {
+            try
+            {
+                string srcPath = src.Data.ToString();
+
+                    if (File.Exists(srcPath))
+                    {
+                        string fileName = Path.GetFileName(srcPath);
+                        File.Copy(srcPath, @$"{dest}\{fileName}");
+                    }
+                    if (Directory.Exists(srcPath))
+                {
+                    MessageBox.Show("It's a dir");
+                    string dirName = Path.GetFileName(srcPath);
+                    Directory.CreateDirectory(@$"{dest}\{dirName}");
+                    CopyDirectory(srcPath, @$"{dest}\{dirName}");
+                }
+                LoadFilesAndDirectories(Path2.Text, listBox2);
+                LoadFilesAndDirectories(Path1.Text, listBox1);
+            }
+            catch (Exception ErrorWhileCopy)
+            {
+
+                MessageBox.Show($"[ERROR]: {ErrorWhileCopy.Message}");
+            }
+
+        }
     }
+    
 }

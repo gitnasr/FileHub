@@ -37,12 +37,14 @@
             copyTo = new Button();
             back = new Button();
             button5 = new Button();
+            label1 = new Label();
+            label2 = new Label();
             SuspendLayout();
             // 
             // Path1
             // 
             Path1.Enabled = false;
-            Path1.Location = new Point(12, 12);
+            Path1.Location = new Point(14, 40);
             Path1.Name = "Path1";
             Path1.Size = new Size(213, 27);
             Path1.TabIndex = 0;
@@ -50,9 +52,9 @@
             // listBox1
             // 
             listBox1.FormattingEnabled = true;
-            listBox1.Location = new Point(14, 53);
+            listBox1.Location = new Point(14, 73);
             listBox1.Name = "listBox1";
-            listBox1.Size = new Size(208, 344);
+            listBox1.Size = new Size(208, 324);
             listBox1.TabIndex = 1;
             listBox1.SelectedIndexChanged += listBox1_SelectedIndexChanged;
             listBox1.MouseDoubleClick += listBox1_MouseDoubleClick;
@@ -80,9 +82,9 @@
             // listBox2
             // 
             listBox2.FormattingEnabled = true;
-            listBox2.Location = new Point(338, 53);
+            listBox2.Location = new Point(338, 73);
             listBox2.Name = "listBox2";
-            listBox2.Size = new Size(208, 344);
+            listBox2.Size = new Size(208, 324);
             listBox2.TabIndex = 4;
             listBox2.SelectedIndexChanged += listBox2_SelectedIndexChanged;
             listBox2.MouseDoubleClick += listBox2_MouseDoubleClick;
@@ -90,7 +92,7 @@
             // Path2
             // 
             Path2.Enabled = false;
-            Path2.Location = new Point(333, 12);
+            Path2.Location = new Point(333, 40);
             Path2.Name = "Path2";
             Path2.Size = new Size(213, 27);
             Path2.TabIndex = 5;
@@ -103,6 +105,7 @@
             copyTo.TabIndex = 6;
             copyTo.Text = "Copy";
             copyTo.UseVisualStyleBackColor = true;
+            copyTo.Click += copyTo_Click;
             // 
             // back
             // 
@@ -124,11 +127,31 @@
             button5.Text = "DESTROY";
             button5.UseVisualStyleBackColor = true;
             // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(12, 19);
+            label1.Name = "label1";
+            label1.Size = new Size(54, 20);
+            label1.TabIndex = 9;
+            label1.Text = "Source";
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(333, 19);
+            label2.Name = "label2";
+            label2.Size = new Size(39, 20);
+            label2.TabIndex = 10;
+            label2.Text = "Dest";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(562, 504);
+            Controls.Add(label2);
+            Controls.Add(label1);
             Controls.Add(button5);
             Controls.Add(back);
             Controls.Add(copyTo);
@@ -156,5 +179,7 @@
         private Button copyTo;
         private Button back;
         private Button button5;
+        private Label label1;
+        private Label label2;
     }
 }
