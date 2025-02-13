@@ -219,20 +219,41 @@ namespace FD
             }
         }
 
-        public List<ListItem> GetDirectoriesFromPath(string Path)
+
+        public DirectoryInfo GetDirectoryInfo(string Path)
         {
-            List<ListItem> directories = new List<ListItem>();
-            DirectoryInfo directory = new DirectoryInfo(Path);
-            DirectoryInfo[] subDirectories = directory.GetDirectories();
-            foreach (DirectoryInfo subDirectory in subDirectories)
+            return new DirectoryInfo(Path);
+        }
+
+        public ListItem[] GetDirectoriesOfDirectory(DirectoryInfo directory)
+        {
+            List<ListItem> listItems = new List<ListItem>();
+            foreach (DirectoryInfo subDirectory in directory.GetDirectories())
             {
-                directories.Add(new ListItem
+                listItems.Add(new ListItem
                 {
                     DisplayText = $"📁 {subDirectory.Name}",
                     ItemData = subDirectory
                 });
             }
-            return directories;
+            return listItems.ToArray();
+        }
+        public ListItem[] GetFilesFromPath(DirectoryInfo directory) {
+
+            List<ListItem> files = new List<ListItem>();
+
+            foreach (FileInfo file in directory.GetFiles())
+            {
+                GetFileEmjoiFromPath(file.Name, out string emoji);
+                files.Add(new ListItem
+                {
+                    DisplayText = $"{emoji} {file.Name}",
+                    ItemData = file
+                });
+            }
+
+            return files.ToArray();
+
         }
     }
 }

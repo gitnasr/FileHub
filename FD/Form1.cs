@@ -65,27 +65,11 @@ namespace FD
             int index = listBoxToAdd.TopIndex;
             try
             {
-                DirectoryInfo directory = new DirectoryInfo(path);
                 listBoxToAdd.Items.Clear();
+                DirectoryInfo directory = FileManager.GetDirectoryInfo(path);
+                listBoxToAdd.Items.AddRange(FileManager.GetDirectoriesOfDirectory(directory));
+                listBoxToAdd.Items.AddRange(FileManager.GetFilesFromPath(directory));
 
-                foreach (DirectoryInfo dir in directory.GetDirectories())
-                {
-                    listBoxToAdd.Items.Add(new ListItem
-                    {
-                        DisplayText = $"📁 {dir.Name}",
-                        ItemData = dir
-                    });
-                }
-
-                foreach (FileInfo file in directory.GetFiles())
-                {
-                    FileManager.GetFileEmjoiFromPath(file.Name, out string emoji);
-                    listBoxToAdd.Items.Add(new ListItem
-                    {
-                        DisplayText = $"{emoji} {file.Name}",
-                        ItemData = file
-                    });
-                }
 
                 back.Enabled = true;
                 listBoxToAdd.TopIndex = index;
@@ -97,19 +81,18 @@ namespace FD
             }
         }
 
+        private bool CanBanGoBack()
+        {
+            return CurrentTextBox.Text != string.Empty;
+        }
 
 
         private void back_Click(object sender, EventArgs e)
         {
 
-            if (CurrentTextBox.Text.Equals(string.Empty))
-            {
-                back.Enabled = false;
-                return;
-            }
-            back.Enabled = true;
+           
 
-            DirectoryInfo CurrentDirectory = new DirectoryInfo(CurrentTextBox.Text);
+            DirectoryInfo CurrentDirectory = FileManager.GetDirectoryInfo(CurrentTextBox.Text);
 
 
             if (CurrentDirectory != null)
@@ -154,17 +137,23 @@ namespace FD
 
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            CurrentListBox = listBox1;
-            CurrentTextBox = Path1;
-
+            UpdateCurrentControls(listBox1, Path1);
         }
+      
 
         private void listBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
-
-            CurrentListBox = listBox2;
-            CurrentTextBox = Path2;
+            UpdateCurrentControls(listBox2, Path2);
         }
+
+        private void UpdateCurrentControls(ListBox listBox, TextBox textBox)
+        {
+            CurrentListBox = listBox;
+            CurrentTextBox = textBox;
+            back.Enabled = CanBanGoBack();
+        }
+    
+
 
         private void moveToRight_Click(object sender, EventArgs e)
         {
