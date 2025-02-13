@@ -1,39 +1,27 @@
-﻿namespace FD
+﻿using System.Diagnostics;
+
+namespace FD
 {
     public partial class Form1 : Form
     {
 
         ListBox CurrentListBox;
         TextBox CurrentTextBox;
+        Files FileManager = new Files();
         public Form1()
         {
             InitializeComponent();
-            LoadCurrentDrivers(listBox1);
-            LoadCurrentDrivers(listBox2);
+            FileManager.LoadCurrentDrivers(listBox1, ref back);
+            FileManager.LoadCurrentDrivers(listBox2, ref back);
         }
-        private void LoadCurrentDrivers(ListBox listToShow)
-        {
-            back.Enabled = false;
 
-            DriveInfo[] drivers = DriveInfo.GetDrives();
-            listToShow.Items.Clear();
-
-            foreach (DriveInfo driver in drivers)
-            {
-                listToShow.Items.Add(new ListItem
-                {
-                    DisplayText = $"🖴 {driver.Name}",
-                    Data = driver
-                });
-            }
-        }
         private void FillListBox(ListBox list)
         {
 
 
             if (list.SelectedItem is ListItem selectedItem)
             {
-                if (selectedItem.Data is DriveInfo driver)
+                if (selectedItem.ItemData is DriveInfo driver)
                 {
                     if (driver.IsReady)
                     {
@@ -41,14 +29,21 @@
                         LoadFilesAndDirectories(driver.RootDirectory.FullName, list);
                     }
                 }
-                else if (selectedItem.Data is DirectoryInfo directory)
+                else if (selectedItem.ItemData is DirectoryInfo directory)
                 {
                     CurrentTextBox.Text = directory.FullName;
                     LoadFilesAndDirectories(directory.FullName, list);
                 }
+                else if (selectedItem.ItemData is FileInfo file)
+                {
+                    FileManager.OpenFile(file.FullName, out bool result);
+                    if (!result)
+                    {
+                        MessageBox.Show("File cannot be opened", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
             }
         }
-
 
         private void Navigate()
         {
@@ -66,6 +61,8 @@
         }
         private void LoadFilesAndDirectories(string path, ListBox listBoxToAdd)
         {
+
+            int index = listBoxToAdd.TopIndex;
             try
             {
                 DirectoryInfo directory = new DirectoryInfo(path);
@@ -76,25 +73,27 @@
                     listBoxToAdd.Items.Add(new ListItem
                     {
                         DisplayText = $"📁 {dir.Name}",
-                        Data = dir
+                        ItemData = dir
                     });
                 }
 
                 foreach (FileInfo file in directory.GetFiles())
                 {
+                    FileManager.GetFileEmjoiFromPath(file.Name, out string emoji);
                     listBoxToAdd.Items.Add(new ListItem
                     {
-                        DisplayText = $"📄 {file.Name}",
-                        Data = file
+                        DisplayText = $"{emoji} {file.Name}",
+                        ItemData = file
                     });
                 }
 
                 back.Enabled = true;
+                listBoxToAdd.TopIndex = index;
             }
 
             catch (Exception ex)
             {
-                MessageBox.Show($"ERROR: {ex.Message}");
+                MessageBox.Show($"ERROR: {ex}");
             }
         }
 
@@ -113,30 +112,34 @@
             DirectoryInfo CurrentDirectory = new DirectoryInfo(CurrentTextBox.Text);
 
 
-
-            DirectoryInfo ParentDirectory = CurrentDirectory.Parent;
-
-            if (ParentDirectory == null)
-            {
-                LoadCurrentDrivers(CurrentListBox);
-                CurrentTextBox.Text = string.Empty;
-                return;
-            }
-
-            LoadFilesAndDirectories(ParentDirectory.FullName, CurrentListBox);
-
-            if (CurrentListBox == listBox1)
+            if (CurrentDirectory != null)
             {
 
-                Path1.Text = ParentDirectory.FullName;
 
+                DirectoryInfo ParentDirectory = CurrentDirectory.Parent;
+
+                if (ParentDirectory == null)
+                {
+                    FileManager.LoadCurrentDrivers(CurrentListBox, ref back);
+                    CurrentTextBox.Text = string.Empty;
+                    return;
+                }
+
+                LoadFilesAndDirectories(ParentDirectory.FullName, CurrentListBox);
+
+                if (CurrentListBox == listBox1)
+                {
+
+                    Path1.Text = ParentDirectory.FullName;
+
+
+                }
+                else
+                {
+                    Path2.Text = ParentDirectory.FullName;
+                }
 
             }
-            else
-            {
-                Path2.Text = ParentDirectory.FullName;
-            }
-
         }
 
         private void listBox1_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -167,119 +170,92 @@
         {
             if (listBox1.SelectedItem is ListItem selectedItem)
             {
-                Move(selectedItem, Path2.Text);
+                FileManager.MoveFile(selectedItem, Path2.Text);
+                RefreshList();
             }
         }
 
-        private void Move(ListItem src, string dest)
-        {
-            try
-            {
-                if (src.Data != null)
-                {
-                    string srcPath = src.Data.ToString();
-                    if (!string.IsNullOrEmpty(srcPath))
-                    {
-                        string fileName = Path.GetFileName(srcPath);
 
-                        string fullDest = @$"{dest}{fileName}".ToString();
-                        if (srcPath.Equals(fullDest))
-                        {
-                            MessageBox.Show("How dare you move in the same folder!");
-                            return;
-                        }
-                        if (src.Data is DirectoryInfo)
-                        {
-                            Directory.Move($@"{srcPath}", @$"{dest}\{fileName}");
-
-                        }
-                        else
-                        {
-                            File.Move($@"{srcPath}", @$"{dest}\{fileName}");
-                        }
-
-                        LoadFilesAndDirectories(Path2.Text, listBox2);
-                        LoadFilesAndDirectories(Path1.Text, listBox1);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"[ERROR]: {ex}");
-            }
-        }
 
         private void moveToLeft_Click(object sender, EventArgs e)
         {
             if (listBox2.SelectedItem is ListItem selectedItem)
             {
-                Move(selectedItem, Path1.Text);
+                FileManager.MoveFile(selectedItem, Path1.Text);
+                RefreshList();
             }
         }
 
-        private void CopyDirectory(string sourceDir, string destDir)
-        {
-            DirectoryInfo sourceDirectory = new DirectoryInfo(sourceDir);
-            DirectoryInfo[] subDirectories = sourceDirectory.GetDirectories();
-            FileInfo[] files = sourceDirectory.GetFiles();
-
-            if (!Directory.Exists(destDir))
-            {
-                Directory.CreateDirectory(destDir);
-            }
-
-            foreach (FileInfo file in files)
-            {
-                string destFilePath = Path.Combine(destDir, file.Name);
-                file.CopyTo(destFilePath, true);
-            }
-
-            foreach (DirectoryInfo subDirectory in subDirectories)
-            {
-                string newDestDir = Path.Combine(destDir, subDirectory.Name);
-                CopyDirectory(subDirectory.FullName, newDestDir);
-            }
-        }
 
         private void copyTo_Click(object sender, EventArgs e)
         {
 
-            string dest = Path2.Text;
             if (listBox1.SelectedItem is ListItem selectedItem)
             {
-                Copy(selectedItem, dest);
+                string dest = Path2.Text;
+                FileManager.Copy(selectedItem.ItemData.ToString(), dest);
+                RefreshList(listBox2);
+            }
+         
+            else
+            {
+                MessageBox.Show("Please select a file to copy -_-");
             }
 
         }
 
-        private void Copy(ListItem src, string dest)
+        private void RefreshList(ListBox? listBox = null)
         {
-            try
+            if (listBox == null)
             {
-                string srcPath = src.Data.ToString();
-
-                    if (File.Exists(srcPath))
-                    {
-                        string fileName = Path.GetFileName(srcPath);
-                        File.Copy(srcPath, @$"{dest}\{fileName}");
-                    }
-                    if (Directory.Exists(srcPath))
-                {
-                    MessageBox.Show("It's a dir");
-                    string dirName = Path.GetFileName(srcPath);
-                    Directory.CreateDirectory(@$"{dest}\{dirName}");
-                    CopyDirectory(srcPath, @$"{dest}\{dirName}");
-                }
                 LoadFilesAndDirectories(Path2.Text, listBox2);
                 LoadFilesAndDirectories(Path1.Text, listBox1);
+                return;
             }
-            catch (Exception ErrorWhileCopy)
+            switch (listBox.Name)
+            {
+                case "listBox1":
+                    LoadFilesAndDirectories(Path1.Text, listBox1);
+                    break;
+                case "listBox2":
+                    LoadFilesAndDirectories(Path2.Text, listBox2);
+                    break;
+            }
+        }
+    
+
+        private void delete_Click(object sender, EventArgs e)
+        {
+            if (CurrentListBox !=null && CurrentListBox.SelectedItem != null)
             {
 
-                MessageBox.Show($"[ERROR]: {ErrorWhileCopy.Message}");
-            }
+                ListItem ItemToDelete = (ListItem)CurrentListBox.SelectedItem;
 
+                MessageBoxButtons buttons = MessageBoxButtons.YesNo;
+                DialogResult result = MessageBox.Show($"THIS IS DISTRUCTIVE ACTION!!!! \nAre you sure you want to delete this file ({ItemToDelete.ItemData})?", "Delete File", buttons, MessageBoxIcon.Warning);
+                if (result == DialogResult.Yes)
+                {
+                   bool isDeleted = FileManager.DeleteFile(ItemToDelete.ItemData.ToString());
+
+                    if (isDeleted) { 
+                        MessageBox.Show("File Deleted Successfully\n I hope you know what're you doing ...","DONE", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("File Deletion Failed\n Please check the file path and try again ...", "FAILED", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+
+                RefreshList(CurrentListBox);
+
+            }
+            else
+            {
+                MessageBox.Show("Please select a file to delete -_-");
+            }
+         
+        
         }
     }
-    
+
 }
