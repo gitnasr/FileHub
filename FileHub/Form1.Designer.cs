@@ -1,4 +1,4 @@
-﻿namespace FD
+﻿namespace FileHub
 {
     partial class Form1
     {
@@ -177,8 +177,9 @@
             Controls.Add(Path1);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             Margin = new Padding(4);
+            MaximizeBox = false;
             Name = "Form1";
-            Text = "FDestoryer";
+            Text = "FileHub";
             ResumeLayout(false);
             PerformLayout();
         }

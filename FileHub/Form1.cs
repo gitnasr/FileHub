@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace FD
+namespace FileHub
 {
     public partial class Form1 : Form
     {

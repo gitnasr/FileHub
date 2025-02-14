@@ -1,4 +1,4 @@
-namespace FD
+namespace FileHub
 {
     internal static class Program
     {
